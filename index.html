@@ -9,7 +9,7 @@
     <style>
         body {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             max-width: 800px;
             margin: auto;
         }
@@ -17,32 +17,41 @@
 </head>
 
 <body>
-    <div id="createTableContainer">
-        <h2>Create Table</h2>
-        <form action="">
-            <label for="table-name">Table Name: <input type="text" id="table-name" name="table-name"></label><br>
-            <form-group id="cols">
-                <label for="col1">Column 1 : <input class="cols" type="text" id="col1" name="col1"></label><br>
-                <label for="col2">Column 2 : <input class="cols" type="text" id="col2" name="col2"></label><br>
-            </form-group>
-            <input type="button" onclick="addCol()" value="add more column">
-            <input type="button" onclick="sendReq()" value="Create Table">
-            <input type="button" onclick="getTablesReq()" value="Get Tables">
-        </form>
-        <div style=" margin: 12px; font-weight: bold;" id="response"></div>
-    </div>
-    <div id="getTableContainer">
-        <table>
-            <thead>
-                <th>Tables</th>
-            </thead>
-            <tbody id="tableNamesContainer">
+    <div>
+        <div id="createTableContainer">
+            <h2>Create Table</h2>
+            <form action="">
+                <label for="table-name">Table Name: <input type="text" id="table-name" name="table-name"></label><br>
+                <form-group id="cols">
+                    <label for="col1">Column 1 : <input class="cols" type="text" id="col1" name="col1"></label><br>
+                    <label for="col2">Column 2 : <input class="cols" type="text" id="col2" name="col2"></label><br>
+                </form-group>
+                <input type="button" onclick="addCol()" value="add more column">
+                <input type="button" onclick="sendReq()" value="Create Table">
+                <input type="button" onclick="getTablesReq()" value="Get Tables">
+            </form>
+            <div style=" margin: 12px; font-weight: bold;" id="response"></div>
+        </div>
+        <div id="getTableContainer">
+            <table>
+                <thead>
+                    <th>Tables</th>
+                </thead>
+                <tbody id="tableNamesContainer">
 
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="search">
+        <h2>Search for Table</h2>
+        <input type="text" id="search-val" placeholder="Enter table to search..">
+        <input type="button" onclick="searchTable()" value="search">
+        <div id="serachResult"></div>
     </div>
     <script>
         var i = 2;
+        var tables = [];
 
         function addCol() {
             i++;
@@ -103,15 +112,30 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     var result = '';
-                    var arr = JSON.parse(xhr.response);
-                    for (let i = 0; i < arr.length; i++) {
-                        result += `<tr><td>` + arr[i] + `</td></tr>`;
+                    tables = JSON.parse(xhr.response);
+                    for (let i = 0; i < tables.length; i++) {
+                        result += `<tr><td>` + tables[i] + `</td></tr>`;
                     }
 
                     document.getElementById('tableNamesContainer').innerHTML = result;
                 }
             };
             xhr.send();
+        }
+
+        function searchTable() {
+            var searchVal = document.getElementById('search-val').value;
+            var serachResult = document.getElementById('serachResult');
+            // if (tables.length == 0) {
+            //     serachResult.innerHTML = 'Get Tables to search';
+            // }
+            for (let i = 0; i < tables.length; i++) {
+                if (searchVal === tables[i]) {
+                    serachResult.innerHTML = 'Found';
+                } else {
+                    serachResult.innerHTML = 'Not Found';
+                }
+            }
         }
     </script>
 </body>
