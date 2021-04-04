@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Management</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-around;
+            max-width: 800px;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="createTableContainer">
+        <h2>Create Table</h2>
+        <form action="">
+            <label for="table-name">Table Name: <input type="text" id="table-name" name="table-name"></label><br>
+            <form-group id="cols">
+                <label for="col1">Column 1 : <input class="cols" type="text" id="col1" name="col1"></label><br>
+                <label for="col2">Column 2 : <input class="cols" type="text" id="col2" name="col2"></label><br>
+            </form-group>
+            <input type="button" onclick="addCol()" value="add more column">
+            <input type="button" onclick="sendReq()" value="Create Table">
+            <input type="button" onclick="getTablesReq()" value="Get Tables">
+        </form>
+        <div style=" margin: 12px; font-weight: bold;" id="response"></div>
+    </div>
+    <div id="getTableContainer">
+        <table>
+            <thead>
+                <th>Tables</th>
+            </thead>
+            <tbody id="tableNamesContainer">
+
+            </tbody>
+        </table>
+    </div>
+    <script>
+        var i = 2;
+
+        function addCol() {
+            i++;
+            var colCont = document.getElementById('cols');
+            var e = document.createElement('label');
+            e.setAttribute('for', 'col' + i + '-name');
+            e.innerHTML = `Column ` + i + `: <input type="text" class="cols" name="col` + i + `" id="col` + i + `"><br>`;
+            colCont.appendChild(e);
+        }
+
+        function sendReq() {
+            var jsonData = [];
+            var columns = document.querySelectorAll('.cols');
+            columns.forEach(function(column) {
+                jsonData.push({
+                    "name": column.value,
+                    "typeDefinition": "uuid",
+                    "static": false
+                })
+            });
+            //post req
+
+            var xhr = new XMLHttpRequest();
+            var url = "https://4a662b59-445c-4031-9f70-daecad09bbbe-europe-west1.apps.astra.datastax.com/api/rest/v1/keyspaces/db_main/tables/";
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("x-cassandra-token", "AstraCS:EhfIzKEZKkvJaJZenZcIwfqG:9a8f81672bb893f44cdb8f3d5351d3127857aabc3bb3dee7d4e3194f244077ea");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    document.getElementById('response').style.color = 'green';
+                    document.getElementById('response').innerHTML = xhr.statusText;
+                } else {
+                    document.getElementById('response').style.color = 'red';
+                    document.getElementById('response').innerHTML = xhr.statusText;
+                }
+            };
+            var data = JSON.stringify({
+                "name": document.getElementById('table-name').value,
+                "ifNotExists": true,
+                "columnDefinitions": jsonData,
+                "primaryKey": {
+                    "partitionKey": ["id"]
+                },
+                "tableOptions": {
+                    "defaultTimeToLive": 0
+                }
+            });
+
+            xhr.send(data);
+        }
+
+        function getTablesReq() {
+            var xhr = new XMLHttpRequest();
+            var url = "https://4a662b59-445c-4031-9f70-daecad09bbbe-europe-west1.apps.astra.datastax.com/api/rest/v1/keyspaces/db_main/tables/";
+            xhr.open("GET", url, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("x-cassandra-token", "AstraCS:EhfIzKEZKkvJaJZenZcIwfqG:9a8f81672bb893f44cdb8f3d5351d3127857aabc3bb3dee7d4e3194f244077ea");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var result = '';
+                    var arr = JSON.parse(xhr.response);
+                    for (let i = 0; i < arr.length; i++) {
+                        result += `<tr><td>` + arr[i] + `</td></tr>`;
+                    }
+
+                    document.getElementById('tableNamesContainer').innerHTML = result;
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+
+</html>
